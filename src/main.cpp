@@ -49,13 +49,13 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 {
   void onResult(BLEAdvertisedDevice advertisedDevice)
   {
-    Serial.printf("Testpoint 1\n");
+    // Serial.printf("Testpoint 1\n");
     std::string strSvcData = advertisedDevice.getServiceData(0);
     std::string strDeviceName = advertisedDevice.getName();
     if (advertisedDevice.haveName() && advertisedDevice.haveServiceData() && !advertisedDevice.getName().compare("MJ_HT_V1"))
     {
 
-      Serial.printf("test point 2\n");
+      // Serial.printf("test point 2\n");
       int serviceDataCount = advertisedDevice.getServiceDataCount();
       std::string strServiceData = advertisedDevice.getServiceData(0);
 
