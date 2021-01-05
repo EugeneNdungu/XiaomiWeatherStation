@@ -24,7 +24,8 @@
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
 
-#define SCAN_TIME 10 // seconds
+#define SCAN_TIME 10  // seconds
+#define SLEEP_TIME 10 //seconds
 
 boolean METRIC = true; //Set true for metric system; false for imperial
 
@@ -54,8 +55,8 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
     {
 
       // Serial.printf("test point 2\n");
-      // int serviceDataCount = advertisedDevice.getServiceDataCount();
-      std::string strServiceData = advertisedDevice.getServiceData();
+      int serviceDataCount = advertisedDevice.getServiceDataCount();
+      std::string strServiceData = advertisedDevice.getServiceData(0);
 
       uint8_t cServiceData[100];
       char charServiceData[100];
@@ -148,9 +149,17 @@ void loop()
   int count = foundDevices.getCount();
   printf("Found device count : %d\n", count);
   Serial.printf("temperature: %.2f humidity: %.2f\n", current_temperature, current_humidity);
-  pBLEScan->clearResults();
+  // pBLEScan->clearResults();
 
-  delay(100);
+   delay(100);
+
+// #if SLEEP_TIME > 0
+//   esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
+//   Serial.printf("Enter deep sleep for %d seconds...\n", (SLEEP_TIME));
+//   esp_deep_sleep_start();
+
+// #endif
+ 
 }
 
 void initBluetooth()
