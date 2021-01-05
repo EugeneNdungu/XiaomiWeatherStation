@@ -24,8 +24,10 @@
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
 
-#define SCAN_TIME 10  // seconds
-#define SLEEP_TIME 300 //seconds
+#include <LiquidCrystal_I2C.h>
+
+#define SCAN_TIME 10   // seconds
+#define SLEEP_TIME 60 //seconds
 
 boolean METRIC = true; //Set true for metric system; false for imperial
 
@@ -46,6 +48,8 @@ String knownBLEAddresses = "58:2d:34:33:9d:3f";
 void initBluetooth();
 String convertFloatToString(float f);
 float CelciusToFahrenheit(float Celsius);
+
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 {
@@ -134,6 +138,10 @@ void setup()
   Serial.begin(115200);
   Serial.println("ESP32 XIAOMI DISPLAY");
 
+  lcd.init();
+  // turn on LCD backlight
+  lcd.backlight();
+
   initBluetooth();
 }
 
@@ -149,9 +157,20 @@ void loop()
   int count = foundDevices.getCount();
   printf("Found device count : %d\n", count);
   Serial.printf("temperature: %.2f humidity: %.2f\n", current_temperature, current_humidity);
+  //Print the temperature on the lcd
+  lcd.setCursor(0,0);
+  lcd.print("Temperature: ");
+  lcd.print(current_temperature);
+  lcd.print("C");
+  //print the humidity on the lcd
+  lcd.setCursor(0,2);
+  lcd.print("Humidity: ");
+  lcd.print(current_humidity);
+  lcd.print("%");
+
   // pBLEScan->clearResults();
 
-   delay(100);
+  delay(100);
 
 #if SLEEP_TIME > 0
   esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
@@ -159,7 +178,6 @@ void loop()
   esp_deep_sleep_start();
 
 #endif
- 
 }
 
 void initBluetooth()
