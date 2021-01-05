@@ -40,6 +40,7 @@ float current_humidity = -100;
 float previous_humidity = -100;
 float current_temperature = -100;
 float previous_temperature = -100;
+String knownBLEAddresses = "58:2d:34:33:9d:3f";
 
 void initBluetooth();
 String convertFloatToString(float f);
@@ -49,10 +50,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 {
   void onResult(BLEAdvertisedDevice advertisedDevice)
   {
-    // Serial.printf("Testpoint 1\n");
-    std::string strSvcData = advertisedDevice.getServiceData(0);
-    std::string strDeviceName = advertisedDevice.getName();
-    if (advertisedDevice.haveName() && advertisedDevice.haveServiceData() && !advertisedDevice.getName().compare("MJ_HT_V1"))
+    if (strcmp(advertisedDevice.getAddress().toString().c_str(), knownBLEAddresses.c_str()) == 0)
     {
 
       // Serial.printf("test point 2\n");
