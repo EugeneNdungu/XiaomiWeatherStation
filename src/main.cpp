@@ -25,7 +25,7 @@
 #include <BLEAdvertisedDevice.h>
 
 #define SCAN_TIME 10  // seconds
-#define SLEEP_TIME 10 //seconds
+#define SLEEP_TIME 300 //seconds
 
 boolean METRIC = true; //Set true for metric system; false for imperial
 
@@ -153,12 +153,12 @@ void loop()
 
    delay(100);
 
-// #if SLEEP_TIME > 0
-//   esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
-//   Serial.printf("Enter deep sleep for %d seconds...\n", (SLEEP_TIME));
-//   esp_deep_sleep_start();
+#if SLEEP_TIME > 0
+  esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
+  Serial.printf("Enter deep sleep for %d seconds...\n", (SLEEP_TIME));
+  esp_deep_sleep_start();
 
-// #endif
+#endif
  
 }
 
