@@ -54,8 +54,8 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
     {
 
       // Serial.printf("test point 2\n");
-      int serviceDataCount = advertisedDevice.getServiceDataCount();
-      std::string strServiceData = advertisedDevice.getServiceData(0);
+      // int serviceDataCount = advertisedDevice.getServiceDataCount();
+      std::string strServiceData = advertisedDevice.getServiceData();
 
       uint8_t cServiceData[100];
       char charServiceData[100];
@@ -148,6 +148,7 @@ void loop()
   int count = foundDevices.getCount();
   printf("Found device count : %d\n", count);
   Serial.printf("temperature: %.2f humidity: %.2f\n", current_temperature, current_humidity);
+  pBLEScan->clearResults();
 
   delay(100);
 }
