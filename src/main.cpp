@@ -54,6 +54,10 @@ void display();
 RTC_DATA_ATTR float lcd_temp = -100;
 RTC_DATA_ATTR float lcd_hum = -100;
 
+void Sim800TestFxn();
+void Sim800Init();
+void printToSerial();
+
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 {
   void onResult(BLEAdvertisedDevice advertisedDevice)
@@ -142,6 +146,8 @@ void setup()
 
   Serial.begin(115200);
   Serial.println("ESP32 XIAOMI DISPLAY");
+  Sim800Init();
+  // Sim800TestFxn();
 
   lcd.init();
   // turn on LCD backlight
@@ -152,7 +158,7 @@ void setup()
 
 void loop()
 {
-  lcd.setCursor(0,0);
+  lcd.setCursor(0, 0);
   lcd.print("Scanning...");
   char printLog[256];
   // display();
@@ -168,9 +174,10 @@ void loop()
   // pBLEScan->clearResults();
 
   delay(100);
+  
 
 #if SLEEP_TIME > 0
-  if (current_temperature != -100 && current_humidity != -100)
+  if (current_temperature != -100 && current_humidity != -100) 
   {
     display();
     esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
@@ -219,4 +226,77 @@ void display()
   lcd.print("Humidity: ");
   lcd.print(lcd_hum);
   lcd.print("%");
+}
+void Sim800TestFxn()
+{
+  Serial2.println("AT+CMEE=2"); //Set the ME's result error code
+  delay(2000);
+  printToSerial();
+  Serial2.println("AT+CPIN?"); //Checks for pin status. Can be used to check if sim is inserted(properly) or not.
+  delay(2000);
+  printToSerial();
+  Serial2.println("AT+CSQ"); //Returns signal strength indication. Response= +CSQ: <rssi>,<ber>
+  delay(2000);
+  printToSerial();
+  Serial2.println("AT+COPS=?"); //Checks for available networks
+  delay(2000);
+  printToSerial();
+  Serial2.println("AT+CSCS?"); //Checks for terminal equipment's(TE) ch_set. Can be used to check if antennae is ok.
+  delay(2000);
+  printToSerial();
+}
+void Sim800Init() //Function to Send Message
+{
+  Serial2.begin(9600); // Setting the baud rate of GSM Module
+  while (!Serial2.available())
+  {
+    Serial2.println("AT");
+    delay(1000);
+    Serial.println("Connecting...");
+#if LCD_I2C_ENABLED
+    lcd.setCursor(0, 0);
+    lcd.print("Connecting...");
+#endif //LCD_I2C_ENABLED
+  }
+  Serial.println("Connected!");
+#if LCD_I2C_ENABLED
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Connected");
+#endif //LCD_I2C_ENABLED
+  Serial2.println("AT+CMGDA=\"DEL ALL\"");
+  delay(2000);
+  printToSerial();
+  Serial2.println("AT+CMGF=1"); // Configuring TEXT mode
+  delay(1000);
+  printToSerial();
+  Serial2.println("AT+CNMI=1,2,0,0,0"); // Decides how newly arrived SMS
+  delay(1000);
+  printToSerial();
+  Serial2.println("AT+CMGL=\"REC UNREAD\""); // Read Unread Messages
+  delay(2000);
+  printToSerial();
+  /*Writing the phone number to EEPROM*/
+  //    setPhoneNoEEPROM();
+  /*Send a message to indicate that the system has restarted*/
+  Serial.println("System Restart");
+  Serial2.println("AT+CMGF=1"); //Sets the GSM Module in Text Mode
+  delay(1000);
+  Serial2.println("AT+CMGS=\"+25421460975\"\r"); // Replace x with mobile number
+                                                 //    Serial2.print("AT+CMGS=");
+                                                 //    Serial2.print("\"+254721460975\"");
+                                                 //    Serial2.print("\r");
+  delay(1000);
+  Serial2.print("System Restart"); // The SMS text you want to send
+  delay(100);
+  Serial2.print((char)26); // ASCII code of CTRL+Z. It marks the end of the text message
+  delay(1000);
+  printToSerial();
+}
+void printToSerial()
+{
+  while (Serial2.available())
+  {
+    Serial.write(Serial2.read()); //Forward what Software Serial received to Serial Port
+  }
 }
