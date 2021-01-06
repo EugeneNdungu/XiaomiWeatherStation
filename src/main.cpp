@@ -57,6 +57,7 @@ RTC_DATA_ATTR float lcd_hum = -100;
 void Sim800TestFxn();
 void Sim800Init();
 void printToSerial();
+void sendToThingspeak();
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 {
@@ -147,7 +148,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("ESP32 XIAOMI DISPLAY");
   Sim800Init();
-  // Sim800TestFxn();
+  Sim800TestFxn();
 
   lcd.init();
   // turn on LCD backlight
@@ -174,12 +175,12 @@ void loop()
   // pBLEScan->clearResults();
 
   delay(100);
-  
 
 #if SLEEP_TIME > 0
-  if (current_temperature != -100 && current_humidity != -100) 
+  if (current_temperature != -100 && current_humidity != -100)
   {
     display();
+    sendToThingspeak();
     esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
     Serial.printf("Enter deep sleep for %d seconds...\n", (SLEEP_TIME));
     esp_deep_sleep_start();
@@ -264,34 +265,34 @@ void Sim800Init() //Function to Send Message
   lcd.setCursor(0, 0);
   lcd.print("Connected");
 #endif //LCD_I2C_ENABLED
-  Serial2.println("AT+CMGDA=\"DEL ALL\"");
-  delay(2000);
-  printToSerial();
-  Serial2.println("AT+CMGF=1"); // Configuring TEXT mode
-  delay(1000);
-  printToSerial();
-  Serial2.println("AT+CNMI=1,2,0,0,0"); // Decides how newly arrived SMS
-  delay(1000);
-  printToSerial();
-  Serial2.println("AT+CMGL=\"REC UNREAD\""); // Read Unread Messages
-  delay(2000);
-  printToSerial();
-  /*Writing the phone number to EEPROM*/
-  //    setPhoneNoEEPROM();
-  /*Send a message to indicate that the system has restarted*/
-  Serial.println("System Restart");
-  Serial2.println("AT+CMGF=1"); //Sets the GSM Module in Text Mode
-  delay(1000);
-  Serial2.println("AT+CMGS=\"+25421460975\"\r"); // Replace x with mobile number
-                                                 //    Serial2.print("AT+CMGS=");
-                                                 //    Serial2.print("\"+254721460975\"");
-                                                 //    Serial2.print("\r");
-  delay(1000);
-  Serial2.print("System Restart"); // The SMS text you want to send
-  delay(100);
-  Serial2.print((char)26); // ASCII code of CTRL+Z. It marks the end of the text message
-  delay(1000);
-  printToSerial();
+  //   Serial2.println("AT+CMGDA=\"DEL ALL\"");
+  //   delay(2000);
+  //   printToSerial();
+  //   Serial2.println("AT+CMGF=1"); // Configuring TEXT mode
+  //   delay(1000);
+  //   printToSerial();
+  //   Serial2.println("AT+CNMI=1,2,0,0,0"); // Decides how newly arrived SMS
+  //   delay(1000);
+  //   printToSerial();
+  //   Serial2.println("AT+CMGL=\"REC UNREAD\""); // Read Unread Messages
+  //   delay(2000);
+  //   printToSerial();
+  //   /*Writing the phone number to EEPROM*/
+  //   //    setPhoneNoEEPROM();
+  //   /*Send a message to indicate that the system has restarted*/
+  //   Serial.println("System Restart");
+  //   Serial2.println("AT+CMGF=1"); //Sets the GSM Module in Text Mode
+  //   delay(1000);
+  //   Serial2.println("AT+CMGS=\"+25421460975\"\r"); // Replace x with mobile number
+  //                                                  //    Serial2.print("AT+CMGS=");
+  //                                                  //    Serial2.print("\"+254721460975\"");
+  //                                                  //    Serial2.print("\r");
+  //   delay(1000);
+  //   Serial2.print("System Restart"); // The SMS text you want to send
+  //   delay(100);
+  //   Serial2.print((char)26); // ASCII code of CTRL+Z. It marks the end of the text message
+  //   delay(1000);
+  //   printToSerial();
 }
 void printToSerial()
 {
@@ -299,4 +300,63 @@ void printToSerial()
   {
     Serial.write(Serial2.read()); //Forward what Software Serial received to Serial Port
   }
+}
+void sendToThingspeak()
+{
+  Serial2.println("AT+CIPSHUT");
+  delay(1000);
+
+  Serial2.println("AT+CIPSTATUS");
+  delay(2000);
+
+  Serial2.println("AT+CIPMUX=0");
+  delay(2000);
+
+  printToSerial();
+
+  Serial2.println("AT+CSTT=\"EQUITEL\""); //start task and setting the APN,
+  delay(1000);
+
+  printToSerial();
+
+  Serial2.println("AT+CIICR"); //bring up wireless connection
+  delay(3000);
+
+  printToSerial();
+
+  Serial2.println("AT+CIFSR"); //get local IP adress
+  delay(2000);
+
+  printToSerial();
+
+  Serial2.println("AT+CIPSPRT=0");
+  delay(3000);
+
+  printToSerial();
+
+  Serial2.println("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",\"80\""); //start up the connection
+  delay(6000);
+
+  printToSerial();
+
+  Serial2.println("AT+CIPSEND"); //begin send data to remote server
+  delay(4000);
+  printToSerial();
+
+  String str = "GET https://api.thingspeak.com/update?api_key=R4R0V350EBWOFPCE&field1=" + String(lcd_temp) + "&field2=" + String(lcd_hum);
+  Serial.println(str);
+  Serial2.println(str); //begin send data to remote server
+
+  delay(4000);
+  printToSerial();
+
+  Serial2.println((char)26); //sending
+  delay(5000);               //waitting for reply, important! the time is base on the condition of internet
+  Serial2.println();
+
+  printToSerial();
+
+  Serial2.println("AT+CIPSHUT"); //close the connection
+  delay(100);
+  printToSerial();
 }
