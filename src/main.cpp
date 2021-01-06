@@ -303,13 +303,13 @@ void printToSerial()
 }
 void sendToThingspeak()
 {
-  Serial2.println("AT+CIPSHUT");
+  Serial2.println("AT+CIPSHUT"); // shuts down any IP  connection
   delay(1000);
 
-  Serial2.println("AT+CIPSTATUS");
+  Serial2.println("AT+CIPSTATUS"); // queries current connection status
   delay(2000);
 
-  Serial2.println("AT+CIPMUX=0");
+  Serial2.println("AT+CIPMUX=0"); // sets a single IP connection
   delay(2000);
 
   printToSerial();
@@ -329,7 +329,7 @@ void sendToThingspeak()
 
   printToSerial();
 
-  Serial2.println("AT+CIPSPRT=0");
+  Serial2.println("AT+CIPSPRT=0"); // sets prompt to "send ok" when module sends data but does not echo when send is successful 
   delay(3000);
 
   printToSerial();
