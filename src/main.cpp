@@ -152,9 +152,10 @@ void setup()
 
 void loop()
 {
-
+  lcd.setCursor(0,0);
+  lcd.print("Scanning...");
   char printLog[256];
-  display();
+  // display();
   Serial.printf("Start BLE scan for %d seconds...\n", SCAN_TIME);
   // BLEScan *pBLEScan = BLEDevice::getScan(); //create new scan
   // pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
