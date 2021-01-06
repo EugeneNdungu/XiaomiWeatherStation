@@ -152,7 +152,7 @@ void setup()
 
   lcd.init();
   // turn on LCD backlight
-  lcd.backlight();
+  // lcd.backlight();
 
   initBluetooth();
 }
