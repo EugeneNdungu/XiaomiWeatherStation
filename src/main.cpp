@@ -27,7 +27,7 @@
 #include <LiquidCrystal_I2C.h>
 
 #define SCAN_TIME 10  // seconds
-#define SLEEP_TIME 60 //seconds
+#define SLEEP_TIME 600 //seconds
 
 boolean METRIC = true; //Set true for metric system; false for imperial
 
