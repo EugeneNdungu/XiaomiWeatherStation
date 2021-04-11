@@ -10,8 +10,8 @@
 
 #include "Arduino.h"
 
-extern RTC_DATA_ATTR float lcd_temp = -100;
-extern RTC_DATA_ATTR float lcd_hum = -100;
+extern RTC_DATA_ATTR float lcd_temp;
+extern RTC_DATA_ATTR float lcd_hum;
 
 void Sim800TestFxn()
 {
