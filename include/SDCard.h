@@ -13,6 +13,8 @@
 #include "SD.h"
 #include "SPI.h"
 
+#define CS_PIN 5
+
 void writeFile(fs::FS &fs, const char *path, const char *message)
 {
     Serial.printf("Writing file: %s\n", path);
