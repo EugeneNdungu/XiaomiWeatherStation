@@ -13,6 +13,14 @@
 extern RTC_DATA_ATTR float lcd_temp;
 extern RTC_DATA_ATTR float lcd_hum;
 
+void printToSerial()
+{
+    while (Serial2.available())
+    {
+        Serial.write(Serial2.read()); //Forward what Software Serial received to Serial Port
+    }
+}
+
 void Sim800TestFxn()
 {
     Serial2.println("AT+CMEE=2"); //Set the ME's result error code
@@ -79,13 +87,7 @@ void Sim800Init() //Function to Send Message
        //   delay(1000);
        //   printToSerial();
 }
-void printToSerial()
-{
-    while (Serial2.available())
-    {
-        Serial.write(Serial2.read()); //Forward what Software Serial received to Serial Port
-    }
-}
+
 void sendToThingspeak()
 {
     Serial2.println("AT+CIPSHUT"); // shuts down any IP  connection
