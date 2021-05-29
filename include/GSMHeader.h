@@ -3,6 +3,8 @@
  * 
  * The header file contains all functions definitions pertaining to the 
  * GSM functionality of the program
+ * Based on previous work by:
+ *      Alex Newton: <https://how2electronics.com/send-gsm-sim800-900-gprs-data-thingspeak-arduino/>
  */
 
 #ifndef _GSMHEADER_
@@ -10,8 +12,18 @@
 
 #include "Arduino.h"
 
+#define SAFARICOM_SIMCARD 0
+#define AIRTEL_SIMCARD 1
+
+#if AIRTEL_SIMCARD
+    #define APN_VALUE "\"EQUITEL\""
+#elif SAFARICOM_SIMCARD
+    #define APN_VALUE "\"safaricom\"" 
+#endif
+
 extern RTC_DATA_ATTR float lcd_temp;
 extern RTC_DATA_ATTR float lcd_hum;
+
 
 void printToSerial()
 {
@@ -21,7 +33,7 @@ void printToSerial()
     }
 }
 
-void Sim800TestFxn()
+void Sim800Debug()
 {
     Serial2.println("AT+CMEE=2"); //Set the ME's result error code
     delay(2000);
@@ -101,7 +113,9 @@ void sendToThingspeak()
 
     printToSerial();
 
-    Serial2.println("AT+CSTT=\"EQUITEL\""); //start task and setting the APN,
+    //start task and setting the APN,
+    Serial2.print("AT+CSTT="); 
+    Serial2.println(APN_VALUE);
     delay(1000);
 
     printToSerial();

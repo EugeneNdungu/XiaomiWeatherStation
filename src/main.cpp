@@ -24,10 +24,17 @@
 #include "config.h"
 
 #include <LiquidCrystal_I2C.h>
-#if BLE_ENABLE
+#include "ds3231.h"
+
+#if BLE_ENABLED
 #define SCAN_TIME 10   // seconds
 #define SLEEP_TIME 300 //seconds
-#endif
+#endif                 // BLE_ENABLED
+
+#if RTC_ENABLED
+DS3231 *rtc = new DS3231(&Wire);
+#endif // RTC_ENABLED
+
 void IRAM_ATTR resetModule()
 {
   ets_printf("reboot\n");
@@ -36,6 +43,7 @@ void IRAM_ATTR resetModule()
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 void display();
+void sendUpdate();
 void writeToSd();
 
 void setup()
@@ -43,17 +51,17 @@ void setup()
 
   Serial.begin(115200);
   Serial.println("ESP32 XIAOMI DISPLAY");
-#if GMS_ENABLE
+#if GSM_ENABLED
   Sim800Init();
-  Sim800TestFxn();
-#endif
+  Sim800Debug();
+#endif // GSM_ENABLE
   lcd.init();
   // turn on LCD backlight
-  // lcd.backlight();
-#if BLE_ENABLE
+  lcd.backlight();
+#if BLE_ENABLED
   initBluetooth();
-#endif
-#if SD_ENABLE
+#endif // BLE_ENABLE
+#if SD_ENABLED
   if (!SD.begin(CS_PIN))
   {
     Serial.println("Card Mount Failed");
@@ -63,20 +71,28 @@ void setup()
   {
     Serial.println("Card Mount Successfull");
   }
-
+#if SD_FILE_INIT_ENABLED
   writeFile(SD, "/datalog_ESP32.txt", "Time, Humidity, Temperature \r\n");
-
+#endif // SD_FILE_INIT_ENBLED
   delay(1000);
 
   readFile(SD, "/datalog_ESP32.txt");
-#endif
+#endif // SD_ENABLE
+#if RTC_ENABLED
+  Wire.begin(SDA_PIN, SCL_PIN);
+  Wire.setClock(CLK_SPEED);
+#if SET_RTC_TIME_ENABLED
+  //sec, min, hr, dayOfWeek(1=Sunday, 7=Saturday), dayOfMonth(1-31), month, year(0-99)
+  rtc->setDS3231Time(47, 45, 23, 7, 29, 5, 21);
+#endif // SET_RTC_TIME_ENABLED
+#endif // RTC_ENABLED
 }
 
 void loop()
 {
   lcd.setCursor(0, 0);
   lcd.print("Scanning...");
-#if BLE_ENABLE
+#if BLE_ENABLED
   char printLog[256];
   // display();
   Serial.printf("Start BLE scan for %d seconds...\n", SCAN_TIME);
@@ -87,10 +103,11 @@ void loop()
   int count = foundDevices.getCount();
   printf("Found device count : %d\n", count);
   Serial.printf("temperature: %.2f humidity: %.2f\n", current_temperature, current_humidity);
-#endif
+#endif // BLE_ENABLED
   // pBLEScan->clearResults();
 
   delay(100);
+  sendUpdate();
 
 #if SLEEP_TIME > 0
   if (current_temperature != -100 && current_humidity != -100)
@@ -123,6 +140,30 @@ void display()
   lcd.print("%");
 }
 
-void writeToSd(){
-  
+/**
+ * @brief Sends regular updates to thingspeak by calling sendToThingspeak()
+*/
+void sendUpdate()
+{
+#if RTC_ENABLED
+  static int count = 0;
+  // Get data from the DS3231
+  int second, minute, hour, dayOfWeek, day, month, year;
+  // retrieve data from DS3231
+  rtc->readDS3231Time(&second, &minute, &hour, &dayOfWeek, &day, &month, &year);
+  rtc->displayTime();
+  int rem = minute % 5;
+  if (rem == 0 && count == 0)
+  {
+    // sendToThingspeak();
+    count++;
+  }
+  else if (rem > 0)
+  {
+    count = 0;
+  }
+#endif //RTC_ENABLED
+}
+void writeToSd()
+{
 }

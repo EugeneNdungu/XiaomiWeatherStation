@@ -3,6 +3,8 @@
  * 
  * The header file contains all functions definitions pertaining to the 
  * sd card functionality of the program
+ * Based on previous work by:
+ *      Christopher: <https://diyi0t.com/sd-card-arduino-esp8266-esp32/>
  */
 
 #ifndef _SDCARD_
@@ -15,6 +17,12 @@
 
 #define CS_PIN 5
 
+/**
+ * @brief Function opens a file in the SD Card with write permission
+ * @param fs: pointer to the memory address of the file system from the SD card (global namespace)
+ * @param path: pointer to the path of the text file
+ * @param message: string to be written to the SD Card
+ */
 void writeFile(fs::FS &fs, const char *path, const char *message)
 {
     Serial.printf("Writing file: %s\n", path);
@@ -36,6 +44,12 @@ void writeFile(fs::FS &fs, const char *path, const char *message)
     file.close();
 }
 
+/**
+ * @brief Function opens a file in the SD Card with write permission
+ * @param fs: pointer to the memory address of the file system from the SD card (global namespace)
+ * @param path: pointer to the path of the text file
+ * @param message: string to be written to the SD Card
+ */
 void appendFile(fs::FS &fs, const char *path, const char *message)
 {
     Serial.printf("Appending to file: %s\n", path);
@@ -57,6 +71,11 @@ void appendFile(fs::FS &fs, const char *path, const char *message)
     file.close();
 }
 
+/**
+ * @brief Function opens a file in the SD Card with read permission
+ * @param fs: pointer to the memory address of the file system from the SD card (global namespace)
+ * @param path: pointer to the path of the text file
+ */
 void readFile(fs::FS &fs, const char *path)
 {
     Serial.printf("Reading file: %s\n", path);
