@@ -57,7 +57,7 @@ void setup()
 #endif // GSM_ENABLE
   lcd.init();
   // turn on LCD backlight
-  lcd.backlight();
+  // lcd.backlight();
 #if BLE_ENABLED
   initBluetooth();
 #endif // BLE_ENABLE
