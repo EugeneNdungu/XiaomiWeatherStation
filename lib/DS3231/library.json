@@ -1,0 +1,15 @@
+{
+    "name": "ds3231",
+    "version": "0.0.1",
+    "description": "Arduino library for operating the DS3231 sensor in nodemcu",
+    "keywords": "timer, ds3231",
+    "authors": [
+        {
+            "name": "eugene",
+            "maintainer": true
+        }
+    ],
+    "license": "MIT",
+    "frameworks": "*",
+    "platforms": "*"
+}
