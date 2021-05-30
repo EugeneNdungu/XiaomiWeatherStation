@@ -4,12 +4,15 @@
  * Copyright 2020 Eugene Mwangi <mwangieugene@agriqautomations.com>
  * Based on previous work by:
  *      educ8s.tv: <http://educ8s.tv/esp32-xiaomi-hack/>
+ *      ElectronicWings: <https://www.electronicwings.com/users/SUJANAABIRAMIC/projects/1086/smart-agriculture-using-iot-technology>
  * 
  * Main Program
  * 
  * // IMPORTANT //
  * You need to install this library as well else it won't work
  * https://github.com/fguiet/ESP32_BLE_Arduino
+ * 
+ * 
 */
 
 #include <Arduino.h>
@@ -43,7 +46,6 @@ void IRAM_ATTR resetModule()
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 void display();
-void sendUpdate();
 void writeToSd();
 
 void setup()
@@ -72,11 +74,11 @@ void setup()
     Serial.println("Card Mount Successfull");
   }
 #if SD_FILE_INIT_ENABLED
-  writeFile(SD, "/datalog_ESP32.txt", "Time, Humidity, Temperature \r\n");
+  writeFile(SD, "/datalog_ESP32.txt", "Date, Time, Humidity, Temperature \r\n");
 #endif // SD_FILE_INIT_ENBLED
   delay(1000);
 
-  readFile(SD, "/datalog_ESP32.txt");
+  // readFile(SD, "/datalog_ESP32.txt");
 #endif // SD_ENABLE
 #if RTC_ENABLED
   Wire.begin(SDA_PIN, SCL_PIN);
@@ -93,7 +95,7 @@ void loop()
   lcd.setCursor(0, 0);
   lcd.print("Scanning...");
 #if BLE_ENABLED
-  char printLog[256];
+  // char printLog[256];
   // display();
   Serial.printf("Start BLE scan for %d seconds...\n", SCAN_TIME);
   // BLEScan *pBLEScan = BLEDevice::getScan(); //create new scan
@@ -107,12 +109,12 @@ void loop()
   // pBLEScan->clearResults();
 
   delay(100);
-  sendUpdate();
 
 #if SLEEP_TIME > 0
   if (current_temperature != -100 && current_humidity != -100)
   {
     display();
+    writeToSd();
     sendToThingspeak();
     esp_sleep_enable_timer_wakeup(SLEEP_TIME * 1000000); // translate second to micro second
     Serial.printf("Enter deep sleep for %d seconds...\n", (SLEEP_TIME));
@@ -141,29 +143,45 @@ void display()
 }
 
 /**
- * @brief Sends regular updates to thingspeak by calling sendToThingspeak()
-*/
-void sendUpdate()
+ * @brief Stores data to the SD Card 
+ */
+void writeToSd()
 {
+  String dataString = "";
 #if RTC_ENABLED
-  static int count = 0;
   // Get data from the DS3231
   int second, minute, hour, dayOfWeek, day, month, year;
   // retrieve data from DS3231
   rtc->readDS3231Time(&second, &minute, &hour, &dayOfWeek, &day, &month, &year);
   rtc->displayTime();
-  int rem = minute % 5;
-  if (rem == 0 && count == 0)
-  {
-    // sendToThingspeak();
-    count++;
-  }
-  else if (rem > 0)
-  {
-    count = 0;
-  }
 #endif //RTC_ENABLED
-}
-void writeToSd()
-{
+  //Concatenate the date to the String(Day/Month/Year)
+  dataString += String(day);
+  dataString += "/";
+  dataString += String(month);
+  dataString += "/";
+  dataString += String(year);
+  //Separate with comma
+  dataString += ",";
+  //Concatenate the time(hr:min:sec)
+  dataString += String(hour);
+  dataString += ":";
+  if (minute < 10)
+    dataString += "0";
+  dataString += String(minute);
+  dataString += ":";
+  if (second < 10)
+    dataString += "0";
+  dataString += String(second);
+  //Separate with comma
+  dataString += ",";
+  //Concatenate the temperature and humidity
+  dataString += String(current_humidity);
+  dataString+="%";
+  dataString += ",";
+  dataString += String(current_temperature);
+  dataString += "C\r\n";
+
+  Serial.println(dataString);
+  appendFile(SD, "/datalog_ESP32.txt", dataString.c_str());
 }
